@@ -1,22 +1,33 @@
 import pygame as pg
 from pathlib import Path
 import string
+import os
 pg.init()
 
 # Create the game window
-screen = pg.display.set_mode((1200, 600))
+screen = pg.display.set_mode((500, 600))
 pg.display.set_caption("Button Change Example")
 
 # Get the directory of the current project
 parent = Path(__file__).parent
 
-# Load the background image
-# Make sure 'background.jpg' exists in the same directory as your script
-background_image = pg.image.load(Path(parent, 'img/background.png')).convert() 
+# BACKGROUNDS
+def GameBg():
+    # Make sure 'background.jpg' exists in the same directory as your script
+    background_image = pg.image.load(Path(parent, 'img/background.png')).convert() 
+    # Scale the image to fit the screen (optional, but often necessary)
+    background_image = pg.transform.scale(background_image, (1200, 600))
+    screen.blit(background_image, (0, 0))
 
-# Scale the image to fit the screen (optional, but often necessary)
-background_image = pg.transform.scale(background_image, (1200, 600))
+def tempobg():
+    # Make sure 'TempBG.jpg' exists in the same directory as your script
+    TempBG = pg.image.load(Path(parent, 'img/TempBG.jpg')).convert() 
+    # Scale the image to fit the screen (optional, but often necessary)
+    TempBG = pg.transform.scale(TempBG, (500, 600))
+    screen.blit(TempBG, (0, 0))
+tempobg()
 
+# BUTTON CLASS
 class p1_btn:
     def __init__(self, x, y, size, callback, name, font=pg.font.Font(None, 36)):
         self.name = name
@@ -61,7 +72,7 @@ while i < 5:
 
 
 # Define the first button (red)
-button = pg.Rect(500, 250, 200, 60)  # x, y, width, height
+button = pg.Rect(140, 250, 200, 60)  # x, y, width, height
 
 # Back button ewan
 back_button = pg.Rect(500, 300, 50, 50)
@@ -98,14 +109,18 @@ while running:
             if not button_clicked and button.collidepoint(event.pos):
                 button_clicked = True
                 back_click = True
+                pg.display.quit()
+                screen = pg.display.set_mode((1200, 600))
+                GameBg()
+                
             # Click on back button → go back to first button
             elif back_click and back_button.collidepoint(event.pos):
                 button_clicked = False
                 back_click = False
-                
+                pg.display.quit()
+                screen = pg.display.set_mode((500, 600))
+                tempobg()
 
-    # --- DRAWING SECTION ---
-    screen.blit(background_image, (0, 0))
     
     # Change mouse cursor when hovering over back button
     if back_click and back_button.collidepoint(pg.mouse.get_pos()):
