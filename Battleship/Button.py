@@ -1,10 +1,11 @@
 import pygame as pg
 from pathlib import Path
 import string
+import os
 pg.init()
 
 # Create the game window
-screen = pg.display.set_mode((1200, 600))
+screen = pg.display.set_mode((500, 600))
 pg.display.set_caption("Button Change Example")
 
 # Get the directory of the current project
@@ -61,7 +62,7 @@ while i < 5:
 
 
 # Define the first button (red)
-button = pg.Rect(500, 250, 200, 60)  # x, y, width, height
+button = pg.Rect(140, 250, 200, 60)  # x, y, width, height
 
 # Back button ewan
 back_button = pg.Rect(500, 300, 50, 50)
@@ -98,10 +99,15 @@ while running:
             if not button_clicked and button.collidepoint(event.pos):
                 button_clicked = True
                 back_click = True
+                pg.display.quit()
+                screen = pg.display.set_mode((1200, 600))
+
             # Click on back button → go back to first button
             elif back_click and back_button.collidepoint(event.pos):
                 button_clicked = False
                 back_click = False
+                pg.display.quit()
+                screen = pg.display.set_mode((500, 600))
                 
 
     # --- DRAWING SECTION ---
