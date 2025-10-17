@@ -109,14 +109,19 @@ while running:
             if not button_clicked and button.collidepoint(event.pos):
                 button_clicked = True
                 back_click = True
+                pg.display.quit()
+                screen = pg.display.set_mode((1200, 600))
+                GameBg()
+                
+
             # Click on back button → go back to first button
             elif back_click and back_button.collidepoint(event.pos):
                 button_clicked = False
                 back_click = False
+                pg.display.quit()
+                screen = pg.display.set_mode((500, 600))
+                tempobg()
                 
-
-    # --- DRAWING SECTION ---
-    screen.blit(background_image, (0, 0))
     
     # Change mouse cursor when hovering over back button
     if back_click and back_button.collidepoint(pg.mouse.get_pos()):
