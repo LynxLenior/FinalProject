@@ -6,7 +6,7 @@ import time
 pygame.init()
 
 # Set up display
-WIDTH, HEIGHT = 600, 600
+WIDTH, HEIGHT = 500, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Memory Matching Game")
 font = pygame.font.Font(None, 74)
@@ -16,6 +16,8 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
+GRAY = (100, 100, 100)
+BLUE = (0, 0, 255)
 
 # Card settings
 CARD_SIZE = 100
@@ -70,20 +72,48 @@ attempts = 0
 running = True
 clock = pygame.time.Clock()
 
-# Show all cards at the start
-screen.fill(BLACK)
-for card in cards:
-    card.revealed = True
-    card.draw(screen)
-screen.blit(font.render("Memorize the pairs ", True, WHITE), (10, 500))
-pygame.display.flip()
+# Main menu
+def main_menu():
+    inMenu = True
 
-# Wait for 5 seconds
-time.sleep(20)
+    # Define button
+    #Centering the buttons using amazing math equations(Just incase the size of the window changes again)
+    play_button = pygame.Rect(WIDTH // 2 - 100, HEIGHT // 2 - 50, 200, 60)
+    quit_button = pygame.Rect(WIDTH // 2 - 100, HEIGHT // 2 + 50, 200, 60)
 
-# Hide all cards after the initial reveal
-for card in cards:
-    card.revealed = False
+    font = pygame.font.Font(None, 50)
+
+    while inMenu:
+        screen.fill(GRAY) # Background color
+
+        #If set to True it will be more smoother, if False it will be more blocky according to what I read
+        title = font.render("Memory Game", True, WHITE)
+        play_text = font.render("Play", True, WHITE)
+        quit_text = font.render("Quit", True, WHITE)
+
+        # Draw title
+        screen.blit(title, (140, 150))
+
+        # Draw buttons
+        pygame.draw.rect(screen, BLUE, play_button)
+        pygame.draw.rect(screen, RED, quit_button)
+
+        #Center the text on buttons thing
+        screen.blit(play_text, (play_button.x + 60, play_button.y + 10))
+        screen.blit(quit_text, (quit_button.x + 60, quit_button.y + 10))
+
+        # Event handling
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if play_button.collidepoint(event.pos):
+                    inMenu = False  # Start the game
+                elif quit_button.collidepoint(event.pos):
+                    pygame.quit()  # Quit if quit clicked
+
+        pygame.display.update()
+main_menu()
 
 # Main game loop
 while running:
@@ -104,18 +134,21 @@ while running:
 
     # Check for match
     if first_card and second_card:
+        # Redraw cards before delay so both are visible
+        for card in cards:
+            card.draw(screen)
+        pygame.display.flip()
+
         pygame.time.wait(500)
         if first_card.symbol == second_card.symbol:
             first_card.matched = True
             second_card.matched = True
-            first_card = None
-            second_card = None
             matches += 1
         else:
             first_card.revealed = False
             second_card.revealed = False
-            first_card = None
-            second_card = None
+        first_card = None
+        second_card = None
 
     # Draw cards
     for card in cards:
