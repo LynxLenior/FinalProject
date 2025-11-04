@@ -10,6 +10,7 @@ WIDTH, HEIGHT = 500, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Memory Matching Game")
 font = pygame.font.Font(None, 74)
+surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
 
 # Colors
 WHITE = (255, 255, 255)
@@ -22,6 +23,47 @@ BLUE = (0, 0, 255)
 # Card settings
 CARD_SIZE = 100
 MARGIN = 20
+
+# Pause variable
+pause = False
+
+# Pause Screen
+def pause_screen():
+    surface.fill((0, 0, 0, 0))  # Clear transparent surface
+    pygame.draw.rect(surface, (128, 128, 128, 150), [0, 0, WIDTH, HEIGHT])  # semi-transparent overlay
+
+    font_title = pygame.font.Font(None, 80)
+    font_button = pygame.font.Font(None, 50)
+
+    # Button settings
+    button_width, button_height = 200, 60
+    button_color = 'white'
+    text_color = BLACK
+
+    # Center positions
+    restart_x = (WIDTH - button_width) // 2
+    restart_y = HEIGHT // 2 - 40
+    menu_x = (WIDTH - button_width) // 2
+    menu_y = restart_y + button_height + 20
+
+    # Draw buttons
+    restart = pygame.draw.rect(surface, button_color, (restart_x, restart_y, button_width, button_height))
+    menu = pygame.draw.rect(surface, button_color, (menu_x, menu_y, button_width, button_height))
+
+    # Draw text
+    paused_text = font_title.render("PAUSED", True, text_color)
+    surface.blit(paused_text, ((WIDTH - paused_text.get_width()) // 2, 150))
+
+    restart_text = font_button.render("Restart", True, text_color)
+    surface.blit(restart_text, ((WIDTH - restart_text.get_width()) // 2, restart_y + 10))
+
+    menu_text = font_button.render("Main Menu", True, text_color)
+    surface.blit(menu_text, ((WIDTH - menu_text.get_width()) // 2, menu_y + 10))
+
+    # Draw to main screen
+    screen.blit(surface, (0, 0))
+
+    return restart, menu
 
 # Create card positions
 def create_card_positions():
@@ -118,19 +160,38 @@ main_menu()
 # Main game loop
 while running:
     screen.fill(BLACK)
+    restart_rect, menu_rect = None, None
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            if first_card is None or (first_card and second_card is None):
-                for card in cards:
-                    if card.rect.collidepoint(event.pos) and not card.revealed and not card.matched:
-                        card.revealed = True
-                        if first_card is None:
-                            first_card = card
-                        elif second_card is None:
-                            second_card = card
-                            attempts += 1
+        elif event.type == pygame.MOUSEBUTTONDOWN and not pause:
+            if not pause:
+                if first_card is None or (first_card and second_card is None):
+                    for card in cards:
+                        if card.rect.collidepoint(event.pos) and not card.revealed and not card.matched:
+                            card.revealed = True
+                            if first_card is None:
+                                first_card = card
+                            elif second_card is None:
+                                second_card = card
+                                attempts += 1
+            else:
+                if restart_rect and restart_rect.collidepoint(event.pos):
+                    # Restart game
+                    pairs = generate_pairs()
+                    cards = [Card(pairs[i], positions[i]) for i in range(16)]
+                    matches = 0
+                    attempts = 0
+                    pause = False
+
+                if menu_rect and menu_rect.collidepoint(event.pos):
+                    # Go back to main menu
+                    main_menu()
+                    pause = False
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                pause = not pause
 
     # Check for match
     if first_card and second_card:
@@ -165,7 +226,10 @@ while running:
         win_text = font.render("You Win!", True, RED)
         screen.blit(win_text, (WIDTH // 2 - 100, HEIGHT // 2 - 50))
 
-    pygame.display.flip()
+    if pause:
+        pause_screen()
+
+    pygame.display.update()
     clock.tick(30)
 
 pygame.quit()
