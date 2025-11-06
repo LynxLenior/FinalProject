@@ -1,6 +1,8 @@
 import pygame
 import random
 import time
+import os
+from pathlib import Path
 
 # Initialize Pygame
 pygame.init()
@@ -24,7 +26,6 @@ BLUE = (0, 0, 255)
 CARD_SIZE = 100
 MARGIN = 20
 
-# Pause variable
 pause = False
 
 # Pause Screen
@@ -65,6 +66,19 @@ def pause_screen():
 
     return restart, menu
 
+# After pygame.init(), add:
+# Load images
+def load_images():
+    image_folder = Path(__file__).parent / 'img'
+    images = []
+    for image_file in os.listdir(image_folder):
+        if image_file.endswith(('.png', '.jpg', '.jpeg')):
+            image_path = image_folder / image_file
+            img = pygame.image.load(str(image_path))
+            img = pygame.transform.scale(img, (CARD_SIZE - 20, CARD_SIZE - 20))  # Scale image to fit card
+            images.append(img)
+    return images  # Create pairs
+
 # Create card positions
 def create_card_positions():
     positions = []
@@ -79,16 +93,16 @@ positions = create_card_positions()
 
 # Generate pairs
 def generate_pairs():
-    symbols = list(range(8)) * 2
-    random.shuffle(symbols)
-    return symbols
+    images = load_images()
+    random.shuffle(images)
+    return images[:8] * 2# Select only 4 pairs
 
 pairs = generate_pairs()
 
 # Card class
 class Card:
-    def __init__(self, symbol, position):
-        self.symbol = symbol
+    def __init__(self, image, position):
+        self.image = image
         self.position = position
         self.rect = pygame.Rect(position[0], position[1], CARD_SIZE, CARD_SIZE)
         self.revealed = False
@@ -97,9 +111,7 @@ class Card:
     def draw(self, screen):
         if self.revealed or self.matched:
             pygame.draw.rect(screen, WHITE, self.rect)
-            font = pygame.font.Font(None, 74)
-            text = font.render(str(self.symbol), True, BLACK)
-            screen.blit(text, (self.position[0] + 35, self.position[1] + 25))
+            screen.blit(self.image, (self.position[0] + 10, self.position[1] + 10))
         else:
             pygame.draw.rect(screen, GREEN, self.rect)
 
@@ -201,7 +213,7 @@ while running:
         pygame.display.flip()
 
         pygame.time.wait(500)
-        if first_card.symbol == second_card.symbol:
+        if first_card.image == second_card.image:
             first_card.matched = True
             second_card.matched = True
             matches += 1
