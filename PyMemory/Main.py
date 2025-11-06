@@ -80,24 +80,25 @@ def load_images():
     return images  # Create pairs
 
 # Create card positions
-def create_card_positions():
+def create_card_positions(size):
     positions = []
-    for i in range(4):
-        for j in range(4):
+    for i in range(size):
+        for j in range(size):
+            if size == 5 and i == 2 and j == 2:
+                continue  #Skipping middle boy
             x = MARGIN + j * (CARD_SIZE + MARGIN)
             y = MARGIN + i * (CARD_SIZE + MARGIN)
             positions.append((x, y))
     return positions
 
-positions = create_card_positions()
-
 # Generate pairs
-def generate_pairs():
-    images = load_images()
-    random.shuffle(images)
-    return images[:8] * 2# Select only 4 pairs
-
-pairs = generate_pairs()
+def generate_pairs(grid_size):
+    if grid_size == 4:
+        symbols = list(range(8)) * 2  # 16 cards total
+    else:  # grid_size == 5
+        symbols = list(range(12)) * 2  # 24 cards (one space will be skipped)
+    random.shuffle(symbols)
+    return symbols
 
 # Card class
 class Card:
@@ -115,8 +116,6 @@ class Card:
         else:
             pygame.draw.rect(screen, GREEN, self.rect)
 
-# Create card objects
-cards = [Card(pairs[i], positions[i]) for i in range(16)]
 
 # Game variables
 first_card = None
@@ -167,7 +166,65 @@ def main_menu():
                     pygame.quit()  # Quit if quit clicked
 
         pygame.display.update()
+# Choosing grid size
+def choose_grid_size():
+    choosing = True
+    font = pygame.font.Font(None, 50)
+    four_button = pygame.Rect(WIDTH // 2 - 100, HEIGHT // 2 - 70, 200, 60)
+    five_button = pygame.Rect(WIDTH // 2 - 100, HEIGHT // 2 + 30, 200, 60)
+
+    while choosing:
+        screen.fill(GRAY)
+        title = font.render("Choose Grid Size", True, WHITE)
+        four_text = font.render("4 x 4", True, WHITE)
+        five_text = font.render("5 x 5", True, WHITE)
+
+        screen.blit(title, (WIDTH // 2 - 160, 150))
+        pygame.draw.rect(screen, BLUE, four_button)
+        pygame.draw.rect(screen, RED, five_button)
+        screen.blit(four_text, (four_button.x + 50, four_button.y + 10))
+        screen.blit(five_text, (five_button.x + 50, five_button.y + 10))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if four_button.collidepoint(event.pos):
+                    return 4
+                elif five_button.collidepoint(event.pos):
+                    return 5
+
+        pygame.display.update()
 main_menu()
+
+grid_size = choose_grid_size()
+# Create cards and positions dynamically
+positions = create_card_positions(grid_size)
+# If 5x5, there are 25 spots but one skipped (center)
+total_cards = len(positions)
+
+# Adjust window size if 5x5 is selected
+if grid_size == 5:
+    WIDTH, HEIGHT = 615, 700
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
+# Generate correct number of pairs
+# Load and prepare image cards
+images = load_images()
+
+# Limit number of images based on grid size
+if grid_size == 4:
+    selected_images = images[:8]
+else:
+    selected_images = images[:12]
+
+# Duplicate and shuffle for pairs
+pairs = selected_images * 2
+random.shuffle(pairs)
+
+# Create Card objects using images, not ints
+cards = [Card(pairs[i], positions[i]) for i in range(total_cards)]
+
 
 # Main game loop
 while running:
@@ -230,10 +287,18 @@ while running:
     # Display match count
     font = pygame.font.Font(None, 36)
     text = font.render(f"Matches: {matches}  Attempts: {attempts}", True, WHITE)
-    screen.blit(text, (10, 500))
+    if grid_size == 4:
+        text_y = (MARGIN + 4 * (CARD_SIZE + MARGIN)) + 10  # just below 4x4 grid
+    else:
+        text_y = (MARGIN + 5 * (CARD_SIZE + MARGIN)) + 10 # just below 5x5 grid
+    screen.blit(text, (10, text_y))
 
     # Check for win
-    if matches == 8:
+    if grid_size == 4 and matches == 8:
+        font = pygame.font.Font(None, 74)
+        win_text = font.render("You Win!", True, RED)
+        screen.blit(win_text, (WIDTH // 2 - 100, HEIGHT // 2 - 50))
+    elif grid_size == 5 and matches == 12:
         font = pygame.font.Font(None, 74)
         win_text = font.render("You Win!", True, RED)
         screen.blit(win_text, (WIDTH // 2 - 100, HEIGHT // 2 - 50))
