@@ -225,17 +225,47 @@ random.shuffle(pairs)
 # Create Card objects using images, not ints
 cards = [Card(pairs[i], positions[i]) for i in range(total_cards)]
 
-
 # Main game loop
 while running:
     screen.fill(BLACK)
     restart_rect, menu_rect = None, None
+    if pause:
+        restart_rect, menu_rect = pause_screen()
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == pygame.MOUSEBUTTONDOWN and not pause:
-            if not pause:
-                if first_card is None or (first_card and second_card is None):
+
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if pause:
+                # --- Handle Pause Buttons ---
+                if restart_rect and restart_rect.collidepoint(event.pos):
+                    # Restart game
+                    first_card = None
+                    second_card = None
+                    matches = 0
+                    attempts = 0
+
+                    # Shuffle new pairs and rebuild cards
+                    pairs = selected_images * 2
+                    random.shuffle(pairs)
+                    cards = [Card(pairs[i], positions[i]) for i in range(total_cards)]
+
+                    pause = False
+                    continue
+
+                elif menu_rect and menu_rect.collidepoint(event.pos):
+                    # Go back to main menu
+                    main_menu()
+                    grid_size = choose_grid_size()
+                    positions = create_card_positions(grid_size)
+                    total_cards = len(positions)
+                    pause = False
+                    continue
+
+            else:
+                # --- Handle Card Clicks ---
+                if first_card is None or second_card is None:
                     for card in cards:
                         if card.rect.collidepoint(event.pos) and not card.revealed and not card.matched:
                             card.revealed = True
@@ -244,21 +274,8 @@ while running:
                             elif second_card is None:
                                 second_card = card
                                 attempts += 1
-            else:
-                if restart_rect and restart_rect.collidepoint(event.pos):
-                    # Restart game
-                    pairs = generate_pairs()
-                    cards = [Card(pairs[i], positions[i]) for i in range(16)]
-                    matches = 0
-                    attempts = 0
-                    pause = False
 
-                if menu_rect and menu_rect.collidepoint(event.pos):
-                    # Go back to main menu
-                    main_menu()
-                    pause = False
-
-        if event.type == pygame.KEYDOWN:
+        elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 pause = not pause
 
@@ -302,9 +319,6 @@ while running:
         font = pygame.font.Font(None, 74)
         win_text = font.render("You Win!", True, RED)
         screen.blit(win_text, (WIDTH // 2 - 100, HEIGHT // 2 - 50))
-
-    if pause:
-        pause_screen()
 
     pygame.display.update()
     clock.tick(30)
