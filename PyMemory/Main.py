@@ -8,12 +8,8 @@ from pathlib import Path
 pygame.init()
 pygame.mixer.init()
 
-#Sounds
-Click = pygame.mixer.Sound('SoundEfx/ButtonClicked.wav')
-Match = pygame.mixer.Sound('SoundEfx/Match.wav')
-Exit = pygame.mixer.Sound('SoundEfx/Exit.wav')
-Play = pygame.mixer.Sound('SoundEfx/Play.wav')
-Win = pygame.mixer.Sound('SoundEfx/Win.wav')
+
+
 # Set up display
 WIDTH, HEIGHT = 500, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -27,7 +23,8 @@ BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 GRAY = (100, 100, 100)
-BLUE = (0, 0, 255)
+BLUE = (55, 111, 159)
+YELLOW = (255, 209, 65)
 
 # Card settings
 CARD_SIZE = 100
@@ -42,6 +39,16 @@ running = True
 clock = pygame.time.Clock()
 
 # After pygame.init(), add:
+
+#Sound Folder Path
+Sound_Folder = Path(__file__).parent / "SoundEfx"
+#Sounds
+Click = pygame.mixer.Sound(Sound_Folder / "ButtonClicked.wav")
+Match = pygame.mixer.Sound(Sound_Folder / "Match.wav")
+Exit = pygame.mixer.Sound(Sound_Folder / "Exit.wav")
+Play = pygame.mixer.Sound(Sound_Folder / "Play.wav")
+Win = pygame.mixer.Sound(Sound_Folder / "Win.wav")
+
 # Load images
 def load_images():
     image_folder = Path(__file__).parent / 'img'
@@ -94,7 +101,7 @@ class Card:
 # Main menu
 def main_menu():
     inMenu = True
-
+    
     # Define button
     #Centering the buttons using amazing math equations(Just incase the size of the window changes again)
     play_button = pygame.Rect(WIDTH // 2 - 100, HEIGHT // 2 - 50, 200, 60)
@@ -103,20 +110,19 @@ def main_menu():
     font = pygame.font.Font(None, 50)
 
     while inMenu:
-        screen.fill(GRAY) # Background color
-
+        
         #If set to True it will be more smoother, if False it will be more blocky according to what I read
         play_text = font.render("Play", True, WHITE)
         quit_text = font.render("Quit", True, WHITE)
 
-        # BAckground
-        Tempbg = pygame.image.load('Dinodor.jpg')
+        # Background
+        Tempbg = pygame.image.load('Test.png')
         Tempbg = pygame.transform.scale(Tempbg, (WIDTH, HEIGHT))
         screen.blit(Tempbg, (0, 0))
 
         # Draw buttons
         pygame.draw.rect(screen, BLUE, play_button)
-        pygame.draw.rect(screen, RED, quit_button)
+        pygame.draw.rect(screen, YELLOW, quit_button)
 
         #Center the text on buttons thing
         screen.blit(play_text, (play_button.x + 60, play_button.y + 10))
@@ -135,7 +141,6 @@ def main_menu():
                     Exit.set_volume(0.2)
                     pygame.time.wait(3000)
                     pygame.quit()  # Quit if quit clicked
-
         pygame.display.update()
 # Choosing grid size
 def choose_grid_size():
@@ -154,7 +159,7 @@ def choose_grid_size():
 
         screen.blit(title, (WIDTH // 2 - 160, 150))
         pygame.draw.rect(screen, BLUE, four_button)
-        pygame.draw.rect(screen, RED, five_button)
+        pygame.draw.rect(screen, YELLOW, five_button)
         screen.blit(four_text, (four_button.x + 60, four_button.y + 10))
         screen.blit(five_text, (five_button.x + 60, five_button.y + 10))
 
@@ -409,7 +414,7 @@ while running:
 
     # Display match count
     font = pygame.font.Font(None, 36)
-    text = font.render(f"Matches: {matches}  Attempts: {attempts}", True, WHITE)
+    text = font.render(f"Matches: {matches}  Attempts: {attempts}", True, BLACK)
     if grid_size == 4:
         text_y = (MARGIN + 4 * (CARD_SIZE + MARGIN)) + 10  # just below 4x4 grid
     else:
