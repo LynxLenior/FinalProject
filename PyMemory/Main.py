@@ -11,7 +11,7 @@ pygame.mixer.init()
 # Set up display
 WIDTH, HEIGHT = 500, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Memory Matching Game")
+pygame.display.set_caption("PyMemory - Do you KNOW what it takes?")
 font = pygame.font.Font(None, 74)
 surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
 
