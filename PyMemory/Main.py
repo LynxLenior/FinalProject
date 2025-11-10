@@ -6,7 +6,14 @@ from pathlib import Path
 
 # Initialize Pygame
 pygame.init()
+pygame.mixer.init()
 
+#Sounds
+Click = pygame.mixer.Sound('SoundEfx/ButtonClicked.wav')
+Match = pygame.mixer.Sound('SoundEfx/Match.wav')
+Exit = pygame.mixer.Sound('SoundEfx/Exit.wav')
+Play = pygame.mixer.Sound('SoundEfx/Play.wav')
+Win = pygame.mixer.Sound('SoundEfx/Win.wav')
 # Set up display
 WIDTH, HEIGHT = 500, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -99,12 +106,13 @@ def main_menu():
         screen.fill(GRAY) # Background color
 
         #If set to True it will be more smoother, if False it will be more blocky according to what I read
-        title = font.render("Memory Game", True, WHITE)
         play_text = font.render("Play", True, WHITE)
         quit_text = font.render("Quit", True, WHITE)
 
-        # Draw title
-        screen.blit(title, (140, 150))
+        # BAckground
+        Tempbg = pygame.image.load('Dinodor.jpg')
+        Tempbg = pygame.transform.scale(Tempbg, (WIDTH, HEIGHT))
+        screen.blit(Tempbg, (0, 0))
 
         # Draw buttons
         pygame.draw.rect(screen, BLUE, play_button)
@@ -120,8 +128,12 @@ def main_menu():
                 pygame.quit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if play_button.collidepoint(event.pos):
+                    Click.play()
                     inMenu = False  # Start the game
                 elif quit_button.collidepoint(event.pos):
+                    Exit.play()
+                    Exit.set_volume(0.2)
+                    pygame.time.wait(3000)
                     pygame.quit()  # Quit if quit clicked
 
         pygame.display.update()
@@ -133,7 +145,9 @@ def choose_grid_size():
     five_button = pygame.Rect(WIDTH // 2 - 100, HEIGHT // 2 + 30, 200, 60)
 
     while choosing:
-        screen.fill(GRAY)
+        Tempbg = pygame.image.load('Din.jpg')
+        Tempbg = pygame.transform.scale(Tempbg, (WIDTH, HEIGHT))
+        screen.blit(Tempbg, (0, 0))
         title = font.render("Choose Grid Size", True, WHITE)
         four_text = font.render("4 x 4", True, WHITE)
         five_text = font.render("5 x 5", True, WHITE)
@@ -141,16 +155,20 @@ def choose_grid_size():
         screen.blit(title, (WIDTH // 2 - 160, 150))
         pygame.draw.rect(screen, BLUE, four_button)
         pygame.draw.rect(screen, RED, five_button)
-        screen.blit(four_text, (four_button.x + 50, four_button.y + 10))
-        screen.blit(five_text, (five_button.x + 50, five_button.y + 10))
+        screen.blit(four_text, (four_button.x + 60, four_button.y + 10))
+        screen.blit(five_text, (five_button.x + 60, five_button.y + 10))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if four_button.collidepoint(event.pos):
+                    Play.play()
+                    Play.set_volume(0.1)
                     return 4
                 elif five_button.collidepoint(event.pos):
+                    Play.play()
+                    Play.set_volume(0.1)
                     return 5
 
         pygame.display.update()
@@ -241,12 +259,15 @@ def pause_screen(pause=False):
         # Draw text
         paused_text = font_title.render("PAUSED", True, win_color)
         screen.blit(paused_text, ((WIDTH - paused_text.get_width()) // 2, 150))
+    
 
         restart_text = font_button.render("Restart", True, text_color)
         screen.blit(restart_text, ((WIDTH - restart_text.get_width()) // 2, restart_y + 10))
+        
 
         menu_text = font_button.render("Main Menu", True, text_color)
         screen.blit(menu_text, ((WIDTH - menu_text.get_width()) // 2, menu_y + 10))
+        
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -259,17 +280,20 @@ def pause_screen(pause=False):
                 # --- Handle Pause Buttons ---
                 if restart and restart.collidepoint(event.pos):
                     # Go back to choose grid size
+                    Click.play()
                     restart_game()
                     pause = False
                     continue
                 elif menu and menu.collidepoint(event.pos):
                     # Go back to main menu
+                    Click.play()
                     main_menu()
                     restart_game()
                     pause = False
                     continue
         pygame.display.update()
     return pause
+
 
 def win_screen(win=False):
     global first_card, second_card, matches, attempts, cards, positions, pairs, grid_size, WIDTH, HEIGHT, screen
@@ -286,6 +310,8 @@ def win_screen(win=False):
     restart_y = HEIGHT // 2 - 40
     menu_x = (WIDTH - button_width) // 2
     menu_y = restart_y + button_height + 20
+    Win.play()
+    Win.set_volume(0.1)
 
     while win:
         screen.fill((0, 0, 0, 0))  # Clear transparent surface
@@ -305,17 +331,20 @@ def win_screen(win=False):
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                Click.play()
                 pygame.quit()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 # win screen buttons
                 if restart and restart.collidepoint(event.pos):
                     # Go back to choose grid size
+                    Click.play()
                     restart_game()
                     win = False
                     continue
                 elif menu and menu.collidepoint(event.pos):
                     # Go back to main menu
+                    Click.play()
                     main_menu()
                     restart_game()
                     win = False
@@ -324,8 +353,12 @@ def win_screen(win=False):
 
 # Main game loop
 while running:
-    screen.fill(BLACK)
+    # BackGround
+    Tempbg = pygame.image.load('Dinodor.jpg')
+    Tempbg = pygame.transform.scale(Tempbg, (WIDTH, HEIGHT))
+    screen.blit(Tempbg, (0, 0))
     pause = pause_screen()
+    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -337,6 +370,7 @@ while running:
                     for card in cards:
                         if card.rect.collidepoint(event.pos) and not card.revealed and not card.matched:
                             card.revealed = True
+                            Click.play()
                             if first_card is None:
                                 first_card = card
                             elif second_card is None:
@@ -348,6 +382,7 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 pause_screen(pause=True)
+
     # Check for match
     if first_card and second_card:
         # Redraw cards before delay so both are visible
@@ -355,11 +390,13 @@ while running:
             card.draw(screen)
         pygame.display.flip()
 
+
         pygame.time.wait(500)
         if first_card.image == second_card.image:
             first_card.matched = True
             second_card.matched = True
             matches += 1
+            Match.play()
         else:
             first_card.revealed = False
             second_card.revealed = False
