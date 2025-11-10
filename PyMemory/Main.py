@@ -184,6 +184,25 @@ random.shuffle(pairs)
 # Create Card objects using images, not ints
 cards = [Card(pairs[i], positions[i]) for i in range(total_cards)]
 
+
+# Restart game variables
+def restart_game():
+    global first_card, second_card, matches, attempts, cards, positions, pairs, grid_size, WIDTH, HEIGHT, screen
+
+    choose_grid_size()
+    first_card = None
+    second_card = None
+    matches = 0
+    attempts = 0
+
+    images = load_images()
+    selected_images = images[:8] if grid_size == 4 else images[:12]
+    pairs = selected_images * 2
+    random.shuffle(pairs)
+
+    cards = [Card(pairs[i], positions[i]) for i in range(len(positions))]
+
+
 # Pause Screen
 def pause_screen(pause=False):
     font_title = pygame.font.Font(None, 80)
@@ -229,19 +248,21 @@ def pause_screen(pause=False):
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 # --- Handle Pause Buttons ---
                 if restart and restart.collidepoint(event.pos):
-                    choose_grid_size()
+                    # Go back to choose grid size
+                    restart_game()
                     pause = False
                     continue
-
                 elif menu and menu.collidepoint(event.pos):
                     # Go back to main menu
                     main_menu()
+                    restart_game()
                     pause = False
                     continue
         pygame.display.update()
     return pause
 
 def win_screen(win=False):
+    global first_card, second_card, matches, attempts, cards, positions, pairs, grid_size, WIDTH, HEIGHT, screen
     font_title = pygame.font.Font(None, 80)
     font_button = pygame.font.Font(None, 50)
 
@@ -279,11 +300,15 @@ def win_screen(win=False):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 # win screen buttons
                 if restart and restart.collidepoint(event.pos):
-                    choose_grid_size()
+                    # Go back to choose grid size
+                    restart_game()
+                    win = False
                     continue
                 elif menu and menu.collidepoint(event.pos):
                     # Go back to main menu
                     main_menu()
+                    restart_game()
+                    win = False
                     continue
         pygame.display.update()
 
