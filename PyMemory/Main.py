@@ -26,45 +26,13 @@ BLUE = (0, 0, 255)
 CARD_SIZE = 100
 MARGIN = 20
 
-pause = False
-
-# Pause Screen
-def pause_screen():
-    surface.fill((0, 0, 0, 0))  # Clear transparent surface
-    pygame.draw.rect(surface, (128, 128, 128, 150), [0, 0, WIDTH, HEIGHT])  # semi-transparent overlay
-
-    font_title = pygame.font.Font(None, 80)
-    font_button = pygame.font.Font(None, 50)
-
-    # Button settings
-    button_width, button_height = 200, 60
-    button_color = 'white'
-    text_color = BLACK
-
-    # Center positions
-    restart_x = (WIDTH - button_width) // 2
-    restart_y = HEIGHT // 2 - 40
-    menu_x = (WIDTH - button_width) // 2
-    menu_y = restart_y + button_height + 20
-
-    # Draw buttons
-    restart = pygame.draw.rect(surface, button_color, (restart_x, restart_y, button_width, button_height))
-    menu = pygame.draw.rect(surface, button_color, (menu_x, menu_y, button_width, button_height))
-
-    # Draw text
-    paused_text = font_title.render("PAUSED", True, text_color)
-    surface.blit(paused_text, ((WIDTH - paused_text.get_width()) // 2, 150))
-
-    restart_text = font_button.render("Restart", True, text_color)
-    surface.blit(restart_text, ((WIDTH - restart_text.get_width()) // 2, restart_y + 10))
-
-    menu_text = font_button.render("Main Menu", True, text_color)
-    surface.blit(menu_text, ((WIDTH - menu_text.get_width()) // 2, menu_y + 10))
-
-    # Draw to main screen
-    screen.blit(surface, (0, 0))
-
-    return restart, menu
+# Game variables
+first_card = None
+second_card = None
+matches = 0
+attempts = 0
+running = True
+clock = pygame.time.Clock()
 
 # After pygame.init(), add:
 # Load images
@@ -115,15 +83,6 @@ class Card:
             screen.blit(self.image, (self.position[0] + 10, self.position[1] + 10))
         else:
             pygame.draw.rect(screen, GREEN, self.rect)
-
-
-# Game variables
-first_card = None
-second_card = None
-matches = 0
-attempts = 0
-running = True
-clock = pygame.time.Clock()
 
 # Main menu
 def main_menu():
@@ -225,45 +184,119 @@ random.shuffle(pairs)
 # Create Card objects using images, not ints
 cards = [Card(pairs[i], positions[i]) for i in range(total_cards)]
 
+# Pause Screen
+def pause_screen(pause=False):
+    font_title = pygame.font.Font(None, 80)
+    font_button = pygame.font.Font(None, 50)
+
+    # Button settings
+    button_width, button_height = 200, 60
+    button_color = 'white'
+    text_color = BLACK
+    win_color = GREEN
+
+    # Center positions
+    restart_x = (WIDTH - button_width) // 2
+    restart_y = HEIGHT // 2 - 40
+    menu_x = (WIDTH - button_width) // 2
+    menu_y = restart_y + button_height + 20
+
+    while pause:
+        screen.fill((0, 0, 0, 0))  # Clear transparent surface
+        pygame.draw.rect(screen, (128, 128, 128, 150), [0, 0, WIDTH, HEIGHT])  # semi-transparent overlay
+
+        # Draw buttons
+        restart = pygame.draw.rect(screen, button_color, (restart_x, restart_y, button_width, button_height))
+        menu = pygame.draw.rect(screen, button_color, (menu_x, menu_y, button_width, button_height))
+
+        # Draw text
+        paused_text = font_title.render("PAUSED", True, win_color)
+        screen.blit(paused_text, ((WIDTH - paused_text.get_width()) // 2, 150))
+
+        restart_text = font_button.render("Restart", True, text_color)
+        screen.blit(restart_text, ((WIDTH - restart_text.get_width()) // 2, restart_y + 10))
+
+        menu_text = font_button.render("Main Menu", True, text_color)
+        screen.blit(menu_text, ((WIDTH - menu_text.get_width()) // 2, menu_y + 10))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    pause = False
+                    continue
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                # --- Handle Pause Buttons ---
+                if restart and restart.collidepoint(event.pos):
+                    choose_grid_size()
+                    pause = False
+                    continue
+
+                elif menu and menu.collidepoint(event.pos):
+                    # Go back to main menu
+                    main_menu()
+                    pause = False
+                    continue
+        pygame.display.update()
+    return pause
+
+def win_screen(win=False):
+    font_title = pygame.font.Font(None, 80)
+    font_button = pygame.font.Font(None, 50)
+
+    # Button settings
+    button_width, button_height = 200, 60
+    button_color = 'white'
+    text_color = BLACK
+
+    # Center positions
+    restart_x = (WIDTH - button_width) // 2
+    restart_y = HEIGHT // 2 - 40
+    menu_x = (WIDTH - button_width) // 2
+    menu_y = restart_y + button_height + 20
+
+    while win:
+        screen.fill((0, 0, 0, 0))  # Clear transparent surface
+        pygame.draw.rect(screen, (128, 128, 128, 150), [0, 0, WIDTH, HEIGHT])  # semi-transparent overlay
+        
+        # Draw buttons
+        restart = pygame.draw.rect(screen, button_color, (restart_x, restart_y, button_width, button_height))
+        menu = pygame.draw.rect(screen, button_color, (menu_x, menu_y, button_width, button_height))
+
+        # Draw text
+        paused_text = font_title.render("YOU WIN!", True, text_color)
+        screen.blit(paused_text, ((WIDTH - paused_text.get_width()) // 2, 150))
+        restart_text = font_button.render("Restart", True, text_color)
+        screen.blit(restart_text, ((WIDTH - restart_text.get_width()) // 2, restart_y + 10))
+        menu_text = font_button.render("Main Menu", True, text_color)
+        screen.blit(menu_text, ((WIDTH - menu_text.get_width()) // 2, menu_y + 10))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                # win screen buttons
+                if restart and restart.collidepoint(event.pos):
+                    choose_grid_size()
+                    continue
+                elif menu and menu.collidepoint(event.pos):
+                    # Go back to main menu
+                    main_menu()
+                    continue
+        pygame.display.update()
+
 # Main game loop
 while running:
     screen.fill(BLACK)
-    restart_rect, menu_rect = None, None
-    if pause:
-        restart_rect, menu_rect = pause_screen()
-
+    pause = pause_screen()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            if pause:
-                # --- Handle Pause Buttons ---
-                if restart_rect and restart_rect.collidepoint(event.pos):
-                    # Restart game
-                    first_card = None
-                    second_card = None
-                    matches = 0
-                    attempts = 0
-
-                    # Shuffle new pairs and rebuild cards
-                    pairs = selected_images * 2
-                    random.shuffle(pairs)
-                    cards = [Card(pairs[i], positions[i]) for i in range(total_cards)]
-
-                    pause = False
-                    continue
-
-                elif menu_rect and menu_rect.collidepoint(event.pos):
-                    # Go back to main menu
-                    main_menu()
-                    grid_size = choose_grid_size()
-                    positions = create_card_positions(grid_size)
-                    total_cards = len(positions)
-                    pause = False
-                    continue
-
-            else:
+            if not pause:
                 # --- Handle Card Clicks ---
                 if first_card is None or second_card is None:
                     for card in cards:
@@ -274,11 +307,12 @@ while running:
                             elif second_card is None:
                                 second_card = card
                                 attempts += 1
-
-        elif event.type == pygame.KEYDOWN:
+            else:
+                pause = pause_screen(pause)
+            
+        if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                pause = not pause
-
+                pause_screen(pause=True)
     # Check for match
     if first_card and second_card:
         # Redraw cards before delay so both are visible
@@ -311,14 +345,10 @@ while running:
     screen.blit(text, (10, text_y))
 
     # Check for win
-    if grid_size == 4 and matches == 8:
-        font = pygame.font.Font(None, 74)
-        win_text = font.render("You Win!", True, RED)
-        screen.blit(win_text, (WIDTH // 2 - 100, HEIGHT // 2 - 50))
-    elif grid_size == 5 and matches == 12:
-        font = pygame.font.Font(None, 74)
-        win_text = font.render("You Win!", True, RED)
-        screen.blit(win_text, (WIDTH // 2 - 100, HEIGHT // 2 - 50))
+    if grid_size == 4 and matches == 1:
+        win_screen(win=True)
+    elif grid_size == 5 and matches == 1:
+        win_screen(win=True)
 
     pygame.display.update()
     clock.tick(30)
