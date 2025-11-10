@@ -8,8 +8,6 @@ from pathlib import Path
 pygame.init()
 pygame.mixer.init()
 
-
-
 # Set up display
 WIDTH, HEIGHT = 500, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -48,6 +46,8 @@ Match = pygame.mixer.Sound(Sound_Folder / "Match.wav")
 Exit = pygame.mixer.Sound(Sound_Folder / "Exit.wav")
 Play = pygame.mixer.Sound(Sound_Folder / "Play.wav")
 Win = pygame.mixer.Sound(Sound_Folder / "Win.wav")
+
+BackGround = Path(__file__).parent / 'Bg'
 
 # Load images
 def load_images():
@@ -96,7 +96,7 @@ class Card:
             pygame.draw.rect(screen, WHITE, self.rect)
             screen.blit(self.image, (self.position[0] + 10, self.position[1] + 10))
         else:
-            pygame.draw.rect(screen, GREEN, self.rect)
+            pygame.draw.rect(screen, GRAY, self.rect)
 
 # Main menu
 def main_menu():
@@ -110,19 +110,14 @@ def main_menu():
     font = pygame.font.Font(None, 50)
 
     while inMenu:
-        
         #If set to True it will be more smoother, if False it will be more blocky according to what I read
-        play_text = font.render("Play", True, WHITE)
-        quit_text = font.render("Quit", True, WHITE)
+        play_text = font.render("", True, WHITE)
+        quit_text = font.render("", True, WHITE)
 
         # Background
-        Tempbg = pygame.image.load('Test.png')
+        Tempbg = pygame.image.load(Path(BackGround / 'Menu.png')).convert()
         Tempbg = pygame.transform.scale(Tempbg, (WIDTH, HEIGHT))
         screen.blit(Tempbg, (0, 0))
-
-        # Draw buttons
-        pygame.draw.rect(screen, BLUE, play_button)
-        pygame.draw.rect(screen, YELLOW, quit_button)
 
         #Center the text on buttons thing
         screen.blit(play_text, (play_button.x + 60, play_button.y + 10))
@@ -142,6 +137,7 @@ def main_menu():
                     pygame.time.wait(3000)
                     pygame.quit()  # Quit if quit clicked
         pygame.display.update()
+
 # Choosing grid size
 def choose_grid_size():
     choosing = True
@@ -150,16 +146,11 @@ def choose_grid_size():
     five_button = pygame.Rect(WIDTH // 2 - 100, HEIGHT // 2 + 30, 200, 60)
 
     while choosing:
-        Tempbg = pygame.image.load('Din.jpg')
+        Tempbg = pygame.image.load(Path(BackGround / 'ChooseGrid.png')).convert()
         Tempbg = pygame.transform.scale(Tempbg, (WIDTH, HEIGHT))
         screen.blit(Tempbg, (0, 0))
-        title = font.render("Choose Grid Size", True, WHITE)
-        four_text = font.render("4 x 4", True, WHITE)
-        five_text = font.render("5 x 5", True, WHITE)
-
-        screen.blit(title, (WIDTH // 2 - 160, 150))
-        pygame.draw.rect(screen, BLUE, four_button)
-        pygame.draw.rect(screen, YELLOW, five_button)
+        four_text = font.render("", True, WHITE)
+        five_text = font.render("", True, WHITE)
         screen.blit(four_text, (four_button.x + 60, four_button.y + 10))
         screen.blit(five_text, (five_button.x + 60, five_button.y + 10))
 
@@ -359,9 +350,14 @@ def win_screen(win=False):
 # Main game loop
 while running:
     # BackGround
-    Tempbg = pygame.image.load('Dinodor.jpg')
-    Tempbg = pygame.transform.scale(Tempbg, (WIDTH, HEIGHT))
-    screen.blit(Tempbg, (0, 0))
+    if grid_size == 4:
+        Tempbg = pygame.image.load(Path(BackGround / 'Game.png')).convert()
+        Tempbg = pygame.transform.scale(Tempbg, (WIDTH, HEIGHT))
+        screen.blit(Tempbg, (0, 0))
+    else:
+        Tempbg = pygame.image.load(Path(BackGround / 'FiveBG.png')).convert()
+        Tempbg = pygame.transform.scale(Tempbg, (WIDTH, HEIGHT))
+        screen.blit(Tempbg, (0, 0))
     pause = pause_screen()
     
     for event in pygame.event.get():
@@ -414,7 +410,7 @@ while running:
 
     # Display match count
     font = pygame.font.Font(None, 36)
-    text = font.render(f"Matches: {matches}  Attempts: {attempts}", True, BLACK)
+    text = font.render(f"Matches: {matches}  Attempts: {attempts}", True, YELLOW)
     if grid_size == 4:
         text_y = (MARGIN + 4 * (CARD_SIZE + MARGIN)) + 10  # just below 4x4 grid
     else:
