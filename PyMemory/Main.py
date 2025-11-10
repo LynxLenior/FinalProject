@@ -189,7 +189,16 @@ cards = [Card(pairs[i], positions[i]) for i in range(total_cards)]
 def restart_game():
     global first_card, second_card, matches, attempts, cards, positions, pairs, grid_size, WIDTH, HEIGHT, screen
 
-    choose_grid_size()
+    grid_size = choose_grid_size() # Gets and store new grid size
+
+    # Change the screen size depending on grid size
+    if grid_size == 5:
+        WIDTH, HEIGHT = 615, 700
+    else:
+        WIDTH, HEIGHT = 500, 600
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
+    #resets the board
     first_card = None
     second_card = None
     matches = 0
@@ -200,6 +209,7 @@ def restart_game():
     pairs = selected_images * 2
     random.shuffle(pairs)
 
+    positions = create_card_positions(grid_size)
     cards = [Card(pairs[i], positions[i]) for i in range(len(positions))]
 
 
