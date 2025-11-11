@@ -159,7 +159,7 @@ def main_menu():
                 elif quit_button.collidepoint(event.pos):
                     Exit.play()
                     Exit.set_volume(0.2)
-                    pygame.time.wait(3000)
+                    pygame.time.wait(560)
                     pygame.quit()  # Quit if quit clicked
         pygame.display.update()
 
@@ -342,9 +342,12 @@ def win_screen(win=False):
 # Main game loop
 while running:
     # BackGround
-    bg_img = pygame.image.load(Path(BackGround / 'Free.png')).convert()
-    bg_img = pygame.transform.scale(bg_img, (WIDTH, HEIGHT))
-    screen.blit(bg_img, (0, 0))
+    if grid_size == 5:
+        bg_img = pygame.image.load(Path(BackGround / 'Free.png')).convert()
+        bg_img = pygame.transform.scale(bg_img, (WIDTH, HEIGHT))
+        screen.blit(bg_img, (0, 0))
+    else:
+        screen.fill(AZURE)
     pause = pause_screen()
     
     for event in pygame.event.get():
