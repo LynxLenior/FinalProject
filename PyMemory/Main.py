@@ -147,7 +147,7 @@ def main_menu():
                 elif quit_button.collidepoint(event.pos):
                     Exit.play()
                     Exit.set_volume(0.2)
-                    pygame.time.wait(3000)
+                    pygame.time.wait(560)
                     pygame.quit()  # Quit if quit clicked
         pygame.display.update()
 
@@ -249,10 +249,6 @@ def restart_game():
 
 # Pause Screen
 def pause_screen(pause=False):
-
-    # Button settings
-    button_width, button_height = 200, 60
-
     while pause:
         # Background image load
         bg_img = pygame.image.load(Path(BackGround / 'Win.png')).convert()
