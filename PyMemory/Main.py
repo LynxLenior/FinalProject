@@ -267,7 +267,7 @@ def pause_screen(pause=False):
     while pause:
         
         # Background image load
-        bg_img = pygame.image.load(Path(BackGround / 'Win.png')).convert()
+        bg_img = pygame.image.load(Path(BackGround / 'Pause.png')).convert()
         bg_img = pygame.transform.scale(bg_img, (WIDTH, HEIGHT))
         screen.blit(bg_img, (0, 0))
         # Draw buttons
@@ -411,9 +411,9 @@ while running:
     screen.blit(text, (10, text_y))
 
     # Check for win
-    if grid_size == 4 and matches == 1:
+    if grid_size == 4 and matches == 8:
         win_screen(win=True)
-    elif grid_size == 5 and matches == 1:
+    elif grid_size == 5 and matches == 12:
         win_screen(win=True)
 
     pygame.display.update()
