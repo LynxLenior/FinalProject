@@ -18,15 +18,23 @@ surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
 # Main Color variables used by the game
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-GREEN = (0, 255, 0)
-RED = (255, 0, 0)
 GRAY = (100, 100, 100)
 BLUE = (55, 111, 159)
 YELLOW = (255, 209, 65)
+AZURE = (0, 38, 69)
 
 # Card size and margins
 CARD_SIZE = 100
 MARGIN = 20
+
+# Button settings
+button_width, button_height = 200, 60
+
+# Center positions
+btn1_x = (WIDTH - button_width) // 2
+btn1_y = HEIGHT // 2 - 40
+btn2_x = (WIDTH - button_width) // 2
+btn2_y = btn1_y + button_height + 20
 
 # Game variables used for scoring and game state
 first_card = None
@@ -47,10 +55,12 @@ Win = pygame.mixer.Sound(Sound_Folder / "Win.wav")
 # declare Background Folder path
 BackGround = Path(__file__).parent / 'Bg'
 
+# declare image folder path using pathlib
+image_folder = Path(__file__).parent / 'img'
+
 # Load all programming logo images using a function
 def load_images():
-    # declare image folder path using pathlib
-    image_folder = Path(__file__).parent / 'img'
+    
     images = []
 
     # store images in a list that can be accessed later
@@ -86,6 +96,9 @@ def create_card_positions(size):
 
 # defines a card class that can easily be used to create card objects and modified easily
 class Card:
+    # Load the card back image once
+    card_back = pygame.image.load(Path(BackGround / 'Card.png')).convert()
+    card_back = pygame.transform.scale(card_back, (CARD_SIZE, CARD_SIZE))
     # initializes the card object with image, position, rect, revealed and matched attributes
     def __init__(self, image, position):
         self.image = image # image variable used to store the image of the card
@@ -101,7 +114,7 @@ class Card:
             pygame.draw.rect(screen, WHITE, self.rect)
             screen.blit(self.image, (self.position[0] + 10, self.position[1] + 10))
         else:
-            pygame.draw.rect(screen, GRAY, self.rect)
+            screen.blit(Card.card_back, self.position)
 
 # Main menu function used to display the main menu and handle button clicks
 def main_menu():
@@ -113,21 +126,11 @@ def main_menu():
     play_button = pygame.Rect(WIDTH // 2 - 100, HEIGHT // 2 - 50, 200, 60)
     quit_button = pygame.Rect(WIDTH // 2 - 100, HEIGHT // 2 + 50, 200, 60)
 
-    font = pygame.font.Font(None, 50)
-
     while inMenu:
-        #If set to True it will be more smoother, if False it will be more blocky according to what I read
-        play_text = font.render("", True, WHITE)
-        quit_text = font.render("", True, WHITE)
-
         # Background image load
         bg_img = pygame.image.load(Path(BackGround / 'Menu.png')).convert()
         bg_img = pygame.transform.scale(bg_img, (WIDTH, HEIGHT))
         screen.blit(bg_img, (0, 0))
-
-        #Center the text on buttons thing
-        screen.blit(play_text, (play_button.x + 60, play_button.y + 10))
-        screen.blit(quit_text, (quit_button.x + 60, quit_button.y + 10))
 
         # Event handling
         for event in pygame.event.get():
@@ -159,10 +162,6 @@ def choose_grid_size():
         bg_img = pygame.image.load(Path(BackGround / 'ChooseGrid.png')).convert()
         bg_img = pygame.transform.scale(bg_img, (WIDTH, HEIGHT))
         screen.blit(bg_img, (0, 0))
-        four_text = font.render("", True, WHITE)
-        five_text = font.render("", True, WHITE)
-        screen.blit(four_text, (four_button.x + 60, four_button.y + 10))
-        screen.blit(five_text, (five_button.x + 60, five_button.y + 10))
 
         for event in pygame.event.get():
             # if player exits, the program closes
@@ -250,42 +249,20 @@ def restart_game():
 
 # Pause Screen
 def pause_screen(pause=False):
-    font_title = pygame.font.Font(None, 80)
-    font_button = pygame.font.Font(None, 50)
 
     # Button settings
     button_width, button_height = 200, 60
-    button_color = 'white'
-    text_color = BLACK
-    win_color = GREEN
-
-    # Center positions
-    restart_x = (WIDTH - button_width) // 2
-    restart_y = HEIGHT // 2 - 40
-    menu_x = (WIDTH - button_width) // 2
-    menu_y = restart_y + button_height + 20
 
     while pause:
-        screen.fill((0, 0, 0, 0))  # Clear transparent surface
-        pygame.draw.rect(screen, (128, 128, 128, 150), [0, 0, WIDTH, HEIGHT])  # semi-transparent overlay
-
+        # Background image load
+        bg_img = pygame.image.load(Path(BackGround / 'Win.png')).convert()
+        bg_img = pygame.transform.scale(bg_img, (WIDTH, HEIGHT))
+        screen.blit(bg_img, (0, 0))
         # Draw buttons
-        restart = pygame.draw.rect(screen, button_color, (restart_x, restart_y, button_width, button_height))
-        menu = pygame.draw.rect(screen, button_color, (menu_x, menu_y, button_width, button_height))
+        restart = pygame.Rect(btn1_x, btn1_y, button_width, button_height)
+        menu = pygame.Rect(btn2_x, btn2_y, button_width, button_height)
 
-        # Draw text
-        paused_text = font_title.render("PAUSED", True, win_color)
-        screen.blit(paused_text, ((WIDTH - paused_text.get_width()) // 2, 150))
-    
-
-        restart_text = font_button.render("Restart", True, text_color)
-        screen.blit(restart_text, ((WIDTH - restart_text.get_width()) // 2, restart_y + 10))
-        
-
-        menu_text = font_button.render("Main Menu", True, text_color)
-        screen.blit(menu_text, ((WIDTH - menu_text.get_width()) // 2, menu_y + 10))
-        
-
+        # Event handling
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -311,40 +288,19 @@ def pause_screen(pause=False):
         pygame.display.update()
     return pause
 
-
 def win_screen(win=False):
-    global first_card, second_card, matches, attempts, cards, positions, pairs, grid_size, WIDTH, HEIGHT, screen
-    font_title = pygame.font.Font(None, 80)
-    font_button = pygame.font.Font(None, 50)
-
-    # Button settings
-    button_width, button_height = 200, 60
-    button_color = 'white'
-    text_color = BLACK
-
-    # Center positions
-    restart_x = (WIDTH - button_width) // 2
-    restart_y = HEIGHT // 2 - 40
-    menu_x = (WIDTH - button_width) // 2
-    menu_y = restart_y + button_height + 20
+    global WIDTH, HEIGHT, screen
     Win.play()
     Win.set_volume(0.1)
 
     while win:
-        screen.fill((0, 0, 0, 0))  # Clear transparent surface
-        pygame.draw.rect(screen, (128, 128, 128, 150), [0, 0, WIDTH, HEIGHT])  # semi-transparent overlay
-        
+        # Background image load
+        bg_img = pygame.image.load(Path(BackGround / 'Win.png')).convert()
+        bg_img = pygame.transform.scale(bg_img, (WIDTH, HEIGHT))
+        screen.blit(bg_img, (0, 0))
         # Draw buttons
-        restart = pygame.draw.rect(screen, button_color, (restart_x, restart_y, button_width, button_height))
-        menu = pygame.draw.rect(screen, button_color, (menu_x, menu_y, button_width, button_height))
-
-        # Draw text
-        paused_text = font_title.render("YOU WIN!", True, text_color)
-        screen.blit(paused_text, ((WIDTH - paused_text.get_width()) // 2, 150))
-        restart_text = font_button.render("Restart", True, text_color)
-        screen.blit(restart_text, ((WIDTH - restart_text.get_width()) // 2, restart_y + 10))
-        menu_text = font_button.render("Main Menu", True, text_color)
-        screen.blit(menu_text, ((WIDTH - menu_text.get_width()) // 2, menu_y + 10))
+        restart = pygame.Rect(btn1_x, btn1_y, button_width, button_height)
+        menu = pygame.Rect(btn2_x, btn2_y, button_width, button_height)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -371,14 +327,7 @@ def win_screen(win=False):
 # Main game loop
 while running:
     # BackGround
-    if grid_size == 4:
-        bg_img = pygame.image.load(Path(BackGround / 'Game.png')).convert()
-        bg_img = pygame.transform.scale(bg_img, (WIDTH, HEIGHT))
-        screen.blit(bg_img, (0, 0))
-    else:
-        bg_img = pygame.image.load(Path(BackGround / 'FiveBG.png')).convert()
-        bg_img = pygame.transform.scale(bg_img, (WIDTH, HEIGHT))
-        screen.blit(bg_img, (0, 0))
+    screen.fill(AZURE)
     pause = pause_screen()
     
     for event in pygame.event.get():
