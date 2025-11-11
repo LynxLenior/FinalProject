@@ -8,11 +8,15 @@ from pathlib import Path
 pygame.init()
 pygame.mixer.init()
 
+# initialize clock
+clock = pygame.time.Clock()
+
 # Set up display
 WIDTH, HEIGHT = 500, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("PyMemory - Do you KNOW what it takes?")
 font = pygame.font.Font(None, 74)
+font_gamevar = pygame.font.Font(None, 36)
 surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
 
 # Main Color variables used by the game
@@ -22,6 +26,7 @@ GRAY = (100, 100, 100)
 BLUE = (55, 111, 159)
 YELLOW = (255, 209, 65)
 AZURE = (0, 38, 69)
+GREEN = (12, 255, 60)
 
 # Card size and margins
 CARD_SIZE = 100
@@ -31,17 +36,19 @@ MARGIN = 20
 # Initial button positions for pause and win screens
 def ChangeWindowSize(size):
     global WIDTH, HEIGHT, screen
+    # if window size is small it is used for menus, and 4x4 grid
     if size == "small":
         WIDTH, HEIGHT = 500, 600
         screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    # window size used for 5x5 grid only
     elif size == "large":
         WIDTH, HEIGHT = 615, 700
         screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-# Button settings
+# Button default sizes for win and pause menu
 button_width, button_height = 200, 60
 
-# Center positions
+# Center positions for win and pause menu buttons
 btn1_x = (WIDTH - button_width) // 2
 btn1_y = HEIGHT // 2 - 40
 btn2_x = (WIDTH - button_width) // 2
@@ -53,7 +60,8 @@ second_card = None
 matches = 0
 attempts = 0
 running = True
-clock = pygame.time.Clock()
+seconds = 0
+start_time = time.time()
 
 # declare Sound effects Folder Path
 Sound_Folder = Path(__file__).parent / "SoundEfx"
@@ -71,9 +79,7 @@ image_folder = Path(__file__).parent / 'img'
 
 # Load all programming logo images using a function
 def load_images():
-    
     images = []
-
     # store images in a list that can be accessed later
     for image_file in os.listdir(image_folder):
         # only accept png and jpg image files
@@ -96,7 +102,6 @@ def create_card_positions(size):
         for row in range(size):
             if size == 5 and column == 2 and row == 2:
                 continue  # skip the middle position for 5x5 grid
-            
             x = MARGIN + row * (CARD_SIZE + MARGIN)
             y = MARGIN + column * (CARD_SIZE + MARGIN)
             positions.append((x, y))
@@ -165,11 +170,14 @@ def main_menu():
 
 # Choosing grid size either 4x4 or 5x5
 def choose_grid_size():
+    # choose loop variable
     choosing = True
+    # buttons for choosing grid size
     four_button = pygame.Rect(WIDTH // 2 - 100, HEIGHT // 2 - 70, 200, 60)
     five_button = pygame.Rect(WIDTH // 2 - 100, HEIGHT // 2 + 30, 200, 60)
 
     while choosing:
+        # set background image for choosing grid size
         bg_img = pygame.image.load(Path(BackGround / 'ChooseGrid.png')).convert()
         bg_img = pygame.transform.scale(bg_img, (WIDTH, HEIGHT))
         screen.blit(bg_img, (0, 0))
@@ -222,7 +230,7 @@ pairs = selected_images * 2
 random.shuffle(pairs)
 
 # Create Card objects inside a list, while using images inside pairs, 
-# and insert positions list then loop
+# and insert positions list then do a loop to create cards based on total no. of cards
 # for i in range of total_cards which is either 16 or 24
 cards = [Card(pairs[i], positions[i]) for i in range(total_cards)]
 
@@ -230,7 +238,10 @@ cards = [Card(pairs[i], positions[i]) for i in range(total_cards)]
 # Function only used for restarting game variables
 def restart_game():
     # global accesses all the variables outside the function and changes them within the function
-    global first_card, second_card, matches, attempts, cards, positions, pairs, grid_size, WIDTH, HEIGHT, screen
+    global first_card, second_card, matches, attempts, cards, positions, pairs, grid_size, WIDTH, HEIGHT, screen, start_time, seconds
+    # reset timer
+    start_time = time.time()
+    seconds = time.time() - start_time
 
     grid_size = choose_grid_size() # Gets and store new grid size
 
@@ -260,12 +271,9 @@ def restart_game():
 
 # Pause Screen
 def pause_screen(pause=False):
-    # Button settings
-    button_width, button_height = 200, 60
-    
-
+    global start_time, seconds
+    # run while the screen is paused
     while pause:
-        
         # Background image load
         bg_img = pygame.image.load(Path(BackGround / 'Pause.png')).convert()
         bg_img = pygame.transform.scale(bg_img, (WIDTH, HEIGHT))
@@ -276,16 +284,19 @@ def pause_screen(pause=False):
         
         # Event handling
         for event in pygame.event.get():
+            # if player quits, then close the program
             if event.type == pygame.QUIT:
                 pygame.quit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
+                    start_time = time.time() - seconds
+                    # if the grid size selected is 5x5 make sure to change the window size back to large
                     if grid_size == 5:
                         ChangeWindowSize("large")
                     pause = False
                     continue
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                # --- Handle Pause Buttons ---
+                # --- Handle Pause Buttons on mouse click ---
                 if restart and restart.collidepoint(event.pos):
                     # Go back to choose grid size
                     Click.play()
@@ -303,12 +314,13 @@ def pause_screen(pause=False):
     return pause
 
 def win_screen(win=False):
-    global WIDTH, HEIGHT, screen
+    # play win screen sound
     Win.play()
     Win.set_volume(0.1)
+    # change window size to small on win screen
     if grid_size == 5:
         ChangeWindowSize("small")
-
+    
     while win:
         # Background image load
         bg_img = pygame.image.load(Path(BackGround / 'Win.png')).convert()
@@ -317,7 +329,15 @@ def win_screen(win=False):
         restart = pygame.Rect(btn1_x, btn1_y, button_width, button_height)
         menu = pygame.Rect(btn2_x, btn2_y, button_width, button_height)
 
+        # winning comment for the player, position of the text, then display it
+        gamevar = font_gamevar.render(f"You matched {matches} cards in {attempts} attempts!", True, YELLOW)
+        elapsed = font_gamevar.render(f"Your time is {seconds:.1f}s", True, YELLOW)
+        text_y = MARGIN + 10
+        screen.blit(gamevar, (10, text_y))
+        screen.blit(elapsed, (10, text_y + 30))
+
         for event in pygame.event.get():
+            # if user closes the game, the program exits
             if event.type == pygame.QUIT:
                 Click.play()
                 pygame.quit()
@@ -325,7 +345,7 @@ def win_screen(win=False):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 # win screen buttons
                 if restart and restart.collidepoint(event.pos):
-                    # Go back to choose grid size
+                    # Go back to restart game and choose grid size
                     Click.play()
                     restart_game()
                     win = False
@@ -341,51 +361,67 @@ def win_screen(win=False):
 
 # Main game loop
 while running:
-    # BackGround
+    pause = pause_screen()    
+
+    # set different background for 5x5 grid
     if grid_size == 5:
         bg_img = pygame.image.load(Path(BackGround / 'Free.png')).convert()
         bg_img = pygame.transform.scale(bg_img, (WIDTH, HEIGHT))
         screen.blit(bg_img, (0, 0))
     else:
+        # blank background on 4x4 grid
         screen.fill(AZURE)
-    pause = pause_screen()
-    
+    # loop to get events for the game
     for event in pygame.event.get():
+        # end main game loop if the game is exited
         if event.type == pygame.QUIT:
             running = False
-
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            if not pause:
-                # --- Handle Card Clicks ---
-                if first_card is None or second_card is None:
-                    for card in cards:
-                        if card.rect.collidepoint(event.pos) and not card.revealed and not card.matched:
-                            card.revealed = True
-                            Click.play()
-                            if first_card is None:
-                                first_card = card
-                            elif second_card is None:
-                                second_card = card
-                                attempts += 1
-            else:
-                pause = pause_screen(pause)
-            
+        # get event on mouse click
+            # --- Handle Card Clicks ---
+            # first_card and second_card is used to store revealed cards
+            # if either of both cards have none stored, then the user can open a card
+            if first_card is None or second_card is None:
+                # when a card is clicked, loop for all the card objects stored in cards list
+                for card in cards:
+                    # if the card clicked is found inside the list, and it has not been revealed
+                    # nor has it been matched, then set the card's revealed variable to "True"
+                    if card.rect.collidepoint(event.pos) and not card.revealed and not card.matched:
+                        card.revealed = True
+                        Click.play()
+                        # if the first card variable has none, then store the card inside
+                        if first_card is None:
+                            first_card = card
+                        # if not, then store it in the second card variable, then add 1 to attempts
+                        elif second_card is None:
+                            second_card = card
+                            attempts += 1
+
+        # if the event is a keydown and it is the escape button, then change the grid size to small
+        # and set the pause screen to true
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 if grid_size == 5:
                     ChangeWindowSize("small")
                 pause_screen(pause=True)
-                
 
-    # Check for match
+    # each frame, it subtracts start_time from the current time count
+    seconds = time.time() - start_time
+    
+    # Check for match if there's a card inside first and second card variables
     if first_card and second_card:
         # Redraw cards before delay so both are visible
         for card in cards:
             card.draw(screen)
+        # update the contents for the whole display
         pygame.display.flip()
 
-
+        # wait 500 milliseconds before the game checks if the cards are matching
         pygame.time.wait(500)
+        # if the first card image variable matches the second card image variable
+        # then set both card matched variable into true, add 1 to matches point
+        # unreveal the cards if it does not match
+        # then clear the first and second variables
         if first_card.image == second_card.image:
             first_card.matched = True
             second_card.matched = True
@@ -401,22 +437,25 @@ while running:
     for card in cards:
         card.draw(screen)
 
-    # Display match count
-    font = pygame.font.Font(None, 36)
-    text = font.render(f"Matches: {matches}  Attempts: {attempts}", True, YELLOW)
+    # Display all game variables such as matches, attempts and time
+    gamevar = font_gamevar.render(f"Matches: {matches}  Attempts: {attempts}", True, YELLOW)
+    elapsed = font_gamevar.render(f"Time: {seconds:.1f}s", True, YELLOW)
+    # position of the text in the game screen
     if grid_size == 4:
         text_y = (MARGIN + 4 * (CARD_SIZE + MARGIN)) + 10  # just below 4x4 grid
     else:
         text_y = (MARGIN + 5 * (CARD_SIZE + MARGIN)) + 10 # just below 5x5 grid
-    screen.blit(text, (10, text_y))
+    screen.blit(gamevar, (10, text_y))
+    screen.blit(elapsed, (10, text_y + 30))
 
-    # Check for win
+    # Check for win, 4x4 needs 8 card matches and 5x5 needs 12 card matches
     if grid_size == 4 and matches == 8:
         win_screen(win=True)
     elif grid_size == 5 and matches == 12:
         win_screen(win=True)
 
     pygame.display.update()
-    clock.tick(30)
+    # game will tick every 60 milliseconds
+    clock.tick(60)
 
 pygame.quit()
