@@ -27,6 +27,17 @@ AZURE = (0, 38, 69)
 CARD_SIZE = 100
 MARGIN = 20
 
+# change window size if 5x5 grid is selected later
+# Initial button positions for pause and win screens
+def ChangeWindowSize(size):
+    global WIDTH, HEIGHT, screen
+    if size == "small":
+        WIDTH, HEIGHT = 500, 600
+        screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    elif size == "large":
+        WIDTH, HEIGHT = 615, 700
+        screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
 # Button settings
 button_width, button_height = 200, 60
 
@@ -84,7 +95,8 @@ def create_card_positions(size):
     for column in range(size):
         for row in range(size):
             if size == 5 and column == 2 and row == 2:
-                continue  # skip center position for 5x5 grid
+                continue  # skip the middle position for 5x5 grid
+            
             x = MARGIN + row * (CARD_SIZE + MARGIN)
             y = MARGIN + column * (CARD_SIZE + MARGIN)
             positions.append((x, y))
@@ -147,14 +159,13 @@ def main_menu():
                 elif quit_button.collidepoint(event.pos):
                     Exit.play()
                     Exit.set_volume(0.2)
-                    pygame.time.wait(560)
+                    pygame.time.wait(3000)
                     pygame.quit()  # Quit if quit clicked
         pygame.display.update()
 
 # Choosing grid size either 4x4 or 5x5
 def choose_grid_size():
     choosing = True
-    font = pygame.font.Font(None, 50)
     four_button = pygame.Rect(WIDTH // 2 - 100, HEIGHT // 2 - 70, 200, 60)
     five_button = pygame.Rect(WIDTH // 2 - 100, HEIGHT // 2 + 30, 200, 60)
 
@@ -249,7 +260,12 @@ def restart_game():
 
 # Pause Screen
 def pause_screen(pause=False):
+    # Button settings
+    button_width, button_height = 200, 60
+    
+
     while pause:
+        
         # Background image load
         bg_img = pygame.image.load(Path(BackGround / 'Win.png')).convert()
         bg_img = pygame.transform.scale(bg_img, (WIDTH, HEIGHT))
@@ -257,13 +273,15 @@ def pause_screen(pause=False):
         # Draw buttons
         restart = pygame.Rect(btn1_x, btn1_y, button_width, button_height)
         menu = pygame.Rect(btn2_x, btn2_y, button_width, button_height)
-
+        
         # Event handling
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
+                    if grid_size == 5:
+                        ChangeWindowSize("large")
                     pause = False
                     continue
             elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -288,13 +306,14 @@ def win_screen(win=False):
     global WIDTH, HEIGHT, screen
     Win.play()
     Win.set_volume(0.1)
+    if grid_size == 5:
+        ChangeWindowSize("small")
 
     while win:
         # Background image load
         bg_img = pygame.image.load(Path(BackGround / 'Win.png')).convert()
         bg_img = pygame.transform.scale(bg_img, (WIDTH, HEIGHT))
         screen.blit(bg_img, (0, 0))
-        # Draw buttons
         restart = pygame.Rect(btn1_x, btn1_y, button_width, button_height)
         menu = pygame.Rect(btn2_x, btn2_y, button_width, button_height)
 
@@ -323,7 +342,9 @@ def win_screen(win=False):
 # Main game loop
 while running:
     # BackGround
-    screen.fill(AZURE)
+    bg_img = pygame.image.load(Path(BackGround / 'Free.png')).convert()
+    bg_img = pygame.transform.scale(bg_img, (WIDTH, HEIGHT))
+    screen.blit(bg_img, (0, 0))
     pause = pause_screen()
     
     for event in pygame.event.get():
@@ -348,7 +369,10 @@ while running:
             
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
+                if grid_size == 5:
+                    ChangeWindowSize("small")
                 pause_screen(pause=True)
+                
 
     # Check for match
     if first_card and second_card:
