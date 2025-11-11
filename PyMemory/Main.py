@@ -15,7 +15,7 @@ pygame.display.set_caption("PyMemory - Do you KNOW what it takes?")
 font = pygame.font.Font(None, 74)
 surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
 
-# Colors
+# Main Color variables used by the game
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
@@ -24,11 +24,11 @@ GRAY = (100, 100, 100)
 BLUE = (55, 111, 159)
 YELLOW = (255, 209, 65)
 
-# Card settings
+# Card size and margins
 CARD_SIZE = 100
 MARGIN = 20
 
-# Game variables
+# Game variables used for scoring and game state
 first_card = None
 second_card = None
 matches = 0
@@ -36,61 +36,66 @@ attempts = 0
 running = True
 clock = pygame.time.Clock()
 
-# After pygame.init(), add:
-
-#Sound Folder Path
+# declare Sound effects Folder Path
 Sound_Folder = Path(__file__).parent / "SoundEfx"
-#Sounds
+# Sound files used by the game
 Click = pygame.mixer.Sound(Sound_Folder / "ButtonClicked.wav")
 Match = pygame.mixer.Sound(Sound_Folder / "Match.wav")
 Exit = pygame.mixer.Sound(Sound_Folder / "Exit.wav")
 Play = pygame.mixer.Sound(Sound_Folder / "Play.wav")
 Win = pygame.mixer.Sound(Sound_Folder / "Win.wav")
-
+# declare Background Folder path
 BackGround = Path(__file__).parent / 'Bg'
 
-# Load images
+# Load all programming logo images using a function
 def load_images():
+    # declare image folder path using pathlib
     image_folder = Path(__file__).parent / 'img'
     images = []
+
+    # store images in a list that can be accessed later
     for image_file in os.listdir(image_folder):
+        # only accept png and jpg image files
         if image_file.endswith(('.png', '.jpg', '.jpeg')):
+            # combine image folder path and image file name to get full path
+            # then load the image using pygame image load method
             image_path = image_folder / image_file
             img = pygame.image.load(str(image_path))
+            # scale the image to fit on the card while maintaining aspect ratio
             img = pygame.transform.scale(img, (CARD_SIZE - 20, CARD_SIZE - 20))  # Scale image to fit card
+            # append image to images list
             images.append(img)
-    return images  # Create pairs
+    return images  # return the list of images
 
-# Create card positions
+# function to create card positions dynamically based on grid size
 def create_card_positions(size):
+    # store the positions of the cards in a list
     positions = []
-    for i in range(size):
-        for j in range(size):
-            if size == 5 and i == 2 and j == 2:
-                continue  #Skipping middle boy
-            x = MARGIN + j * (CARD_SIZE + MARGIN)
-            y = MARGIN + i * (CARD_SIZE + MARGIN)
+    for column in range(size):
+        for row in range(size):
+            if size == 5 and column == 2 and row == 2:
+                continue  # skip center position for 5x5 grid
+            x = MARGIN + row * (CARD_SIZE + MARGIN)
+            y = MARGIN + column * (CARD_SIZE + MARGIN)
             positions.append((x, y))
-    return positions
+    # the positions would return a list of tuples with x and y coordinates
+    # the formula is MARGIN = 20 + column/row index * (CARD_SIZE = 100 + MARGIN = 20)
+    # e.g., [(20, 20), (140, 20), (260, 20), ...] for the 4x4 grid it's 16 positions
+    # while the 5x5 grid would return 24 positions (one skipped in the middle)
+    return positions # return the list of card positions
 
-# Generate pairs
-def generate_pairs(grid_size):
-    if grid_size == 4:
-        symbols = list(range(8)) * 2  # 16 cards total
-    else:  # grid_size == 5
-        symbols = list(range(12)) * 2  # 24 cards (one space will be skipped)
-    random.shuffle(symbols)
-    return symbols
-
-# Card class
+# defines a card class that can easily be used to create card objects and modified easily
 class Card:
+    # initializes the card object with image, position, rect, revealed and matched attributes
     def __init__(self, image, position):
-        self.image = image
-        self.position = position
-        self.rect = pygame.Rect(position[0], position[1], CARD_SIZE, CARD_SIZE)
-        self.revealed = False
-        self.matched = False
+        self.image = image # image variable used to store the image of the card
+        self.position = position # position variable used to store the x and y coordinates of the card
+        self.rect = pygame.Rect(position[0], position[1], CARD_SIZE, CARD_SIZE) # rect variable used for collision detection
+        self.revealed = False # revealed variable used to check if the card is face up or down
+        self.matched = False # matched variable used to check if the card has been matched already
 
+    # draw method used to draw the card on the screen, and also check if it's revealed or matched
+    # if it is revealed or matched, it draws the image, otherwise it draws the back of the card
     def draw(self, screen):
         if self.revealed or self.matched:
             pygame.draw.rect(screen, WHITE, self.rect)
@@ -98,8 +103,9 @@ class Card:
         else:
             pygame.draw.rect(screen, GRAY, self.rect)
 
-# Main menu
+# Main menu function used to display the main menu and handle button clicks
 def main_menu():
+    # Menu loop variable
     inMenu = True
     
     # Define button
@@ -114,10 +120,10 @@ def main_menu():
         play_text = font.render("", True, WHITE)
         quit_text = font.render("", True, WHITE)
 
-        # Background
-        Tempbg = pygame.image.load(Path(BackGround / 'Menu.png')).convert()
-        Tempbg = pygame.transform.scale(Tempbg, (WIDTH, HEIGHT))
-        screen.blit(Tempbg, (0, 0))
+        # Background image load
+        bg_img = pygame.image.load(Path(BackGround / 'Menu.png')).convert()
+        bg_img = pygame.transform.scale(bg_img, (WIDTH, HEIGHT))
+        screen.blit(bg_img, (0, 0))
 
         #Center the text on buttons thing
         screen.blit(play_text, (play_button.x + 60, play_button.y + 10))
@@ -125,12 +131,16 @@ def main_menu():
 
         # Event handling
         for event in pygame.event.get():
+            # if player exits, pygame closes
             if event.type == pygame.QUIT:
                 pygame.quit()
+            # on mouse button press
             elif event.type == pygame.MOUSEBUTTONDOWN:
+                # check if play button is clicked then continue with choose_grid_size menu
                 if play_button.collidepoint(event.pos):
                     Click.play()
                     inMenu = False  # Start the game
+                # if quit, then exit pygame
                 elif quit_button.collidepoint(event.pos):
                     Exit.play()
                     Exit.set_volume(0.2)
@@ -138,7 +148,7 @@ def main_menu():
                     pygame.quit()  # Quit if quit clicked
         pygame.display.update()
 
-# Choosing grid size
+# Choosing grid size either 4x4 or 5x5
 def choose_grid_size():
     choosing = True
     font = pygame.font.Font(None, 50)
@@ -146,34 +156,39 @@ def choose_grid_size():
     five_button = pygame.Rect(WIDTH // 2 - 100, HEIGHT // 2 + 30, 200, 60)
 
     while choosing:
-        Tempbg = pygame.image.load(Path(BackGround / 'ChooseGrid.png')).convert()
-        Tempbg = pygame.transform.scale(Tempbg, (WIDTH, HEIGHT))
-        screen.blit(Tempbg, (0, 0))
+        bg_img = pygame.image.load(Path(BackGround / 'ChooseGrid.png')).convert()
+        bg_img = pygame.transform.scale(bg_img, (WIDTH, HEIGHT))
+        screen.blit(bg_img, (0, 0))
         four_text = font.render("", True, WHITE)
         five_text = font.render("", True, WHITE)
         screen.blit(four_text, (four_button.x + 60, four_button.y + 10))
         screen.blit(five_text, (five_button.x + 60, five_button.y + 10))
 
         for event in pygame.event.get():
+            # if player exits, the program closes
             if event.type == pygame.QUIT:
                 pygame.quit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if four_button.collidepoint(event.pos):
                     Play.play()
                     Play.set_volume(0.1)
+                    # if 4x4 selected, the function returns 4
                     return 4
                 elif five_button.collidepoint(event.pos):
                     Play.play()
                     Play.set_volume(0.1)
+                    # if 5x5 selected, the function returns 5
                     return 5
 
         pygame.display.update()
-main_menu()
 
+# call main menu function first
+main_menu()
+# then run choose grid size after main menu function, and also store value inside grid_size
 grid_size = choose_grid_size()
-# Create cards and positions dynamically
+# Create cards and positions dynamically using grid_size
 positions = create_card_positions(grid_size)
-# If 5x5, there are 25 spots but one skipped (center)
+# stores the number of cards inside the positions list into total_cards
 total_cards = len(positions)
 
 # Adjust window size if 5x5 is selected
@@ -181,26 +196,30 @@ if grid_size == 5:
     WIDTH, HEIGHT = 615, 700
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-# Generate correct number of pairs
-# Load and prepare image cards
+# gets the returned list of images that was loaded in the load_images function
 images = load_images()
 
 # Limit number of images based on grid size
+# if grid size selected is exactly 4 then only pick 8 images inside the images list
+# if not then pick exactly 12 images
 if grid_size == 4:
     selected_images = images[:8]
 else:
     selected_images = images[:12]
 
-# Duplicate and shuffle for pairs
+# Duplicate images to have pairs and shuffle the pairs
 pairs = selected_images * 2
 random.shuffle(pairs)
 
-# Create Card objects using images, not ints
+# Create Card objects inside a list, while using images inside pairs, 
+# and insert positions list then loop
+# for i in range of total_cards which is either 16 or 24
 cards = [Card(pairs[i], positions[i]) for i in range(total_cards)]
 
 
-# Restart game variables
+# Function only used for restarting game variables
 def restart_game():
+    # global accesses all the variables outside the function and changes them within the function
     global first_card, second_card, matches, attempts, cards, positions, pairs, grid_size, WIDTH, HEIGHT, screen
 
     grid_size = choose_grid_size() # Gets and store new grid size
@@ -212,17 +231,19 @@ def restart_game():
         WIDTH, HEIGHT = 500, 600
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-    #resets the board
+    # resets the board and scores
     first_card = None
     second_card = None
     matches = 0
     attempts = 0
 
+    # reloads the images again
     images = load_images()
     selected_images = images[:8] if grid_size == 4 else images[:12]
     pairs = selected_images * 2
     random.shuffle(pairs)
 
+    # sets positions again
     positions = create_card_positions(grid_size)
     cards = [Card(pairs[i], positions[i]) for i in range(len(positions))]
 
@@ -351,13 +372,13 @@ def win_screen(win=False):
 while running:
     # BackGround
     if grid_size == 4:
-        Tempbg = pygame.image.load(Path(BackGround / 'Game.png')).convert()
-        Tempbg = pygame.transform.scale(Tempbg, (WIDTH, HEIGHT))
-        screen.blit(Tempbg, (0, 0))
+        bg_img = pygame.image.load(Path(BackGround / 'Game.png')).convert()
+        bg_img = pygame.transform.scale(bg_img, (WIDTH, HEIGHT))
+        screen.blit(bg_img, (0, 0))
     else:
-        Tempbg = pygame.image.load(Path(BackGround / 'FiveBG.png')).convert()
-        Tempbg = pygame.transform.scale(Tempbg, (WIDTH, HEIGHT))
-        screen.blit(Tempbg, (0, 0))
+        bg_img = pygame.image.load(Path(BackGround / 'FiveBG.png')).convert()
+        bg_img = pygame.transform.scale(bg_img, (WIDTH, HEIGHT))
+        screen.blit(bg_img, (0, 0))
     pause = pause_screen()
     
     for event in pygame.event.get():
