@@ -61,7 +61,6 @@ matches = 0
 attempts = 0
 running = True
 seconds = 0
-start_time = time.time()
 
 # declare Sound effects Folder Path
 Sound_Folder = Path(__file__).parent / "SoundEfx"
@@ -163,7 +162,6 @@ def main_menu():
                 # if quit, then exit pygame
                 elif quit_button.collidepoint(event.pos):
                     Exit.play()
-                    Exit.set_volume(0.2)
                     pygame.time.wait(560)
                     pygame.quit()  # Quit if quit clicked
         pygame.display.update()
@@ -189,12 +187,10 @@ def choose_grid_size():
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if four_button.collidepoint(event.pos):
                     Play.play()
-                    Play.set_volume(0.1)
                     # if 4x4 selected, the function returns 4
                     return 4
                 elif five_button.collidepoint(event.pos):
                     Play.play()
-                    Play.set_volume(0.1)
                     # if 5x5 selected, the function returns 5
                     return 5
 
@@ -239,9 +235,7 @@ cards = [Card(pairs[i], positions[i]) for i in range(total_cards)]
 def restart_game():
     # global accesses all the variables outside the function and changes them within the function
     global first_card, second_card, matches, attempts, cards, positions, pairs, grid_size, WIDTH, HEIGHT, screen, start_time, seconds
-    # reset timer
-    start_time = time.time()
-    seconds = time.time() - start_time
+    
 
     grid_size = choose_grid_size() # Gets and store new grid size
 
@@ -268,7 +262,10 @@ def restart_game():
     positions = create_card_positions(grid_size)
     cards = [Card(pairs[i], positions[i]) for i in range(len(positions))]
 
-
+    # reset timer
+    start_time = time.time()
+    seconds = time.time() - start_time
+    
 # Pause Screen
 def pause_screen(pause=False):
     global start_time, seconds
@@ -316,7 +313,6 @@ def pause_screen(pause=False):
 def win_screen(win=False):
     # play win screen sound
     Win.play()
-    Win.set_volume(0.1)
     # change window size to small on win screen
     if grid_size == 5:
         ChangeWindowSize("small")
@@ -359,6 +355,8 @@ def win_screen(win=False):
                     continue
         pygame.display.update()
 
+#start timer before main game loop
+start_time = time.time()
 # Main game loop
 while running:
     pause = pause_screen()    
